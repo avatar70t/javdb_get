@@ -1,0 +1,19 @@
+# 忽略 Python 编译产物
+__pycache__/
+*.py[cod]
+
+# 忽略虚拟环境
+venv/
+.env/
+*.env
+
+# 忽略日志和临时文件
+*.log
+*.tmp
+*.bak
+
+# 忽略 IDE/编辑器产生的配置文件
+.vscode/
+.idea/
+*.swp
+.DS_Store
