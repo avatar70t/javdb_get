@@ -94,11 +94,15 @@ def create_xml_minidom(info_dict, nfo_path):
         print(f"❌ 生成 XML 失败: {nfo_path.name} - {e}")
 
 
-def download_image_with_cookies(img_url, save_path, cookies):
+def download_image_with_cookies(img_url, save_path, cookies,driver):
+    
     headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36",
-        "Referer": "https://www.javbus.com/",  # 关键：让服务器以为你是从网页点进来的
-    }
+            "User-Agent": driver.execute_script("return navigator.userAgent;"),
+            "Referer": driver.current_url
+        }
+    print(headers)
+    input()
+
     try:
         # 下载图片
         response = requests.get(img_url, cookies=cookies, headers=headers, stream=True)
@@ -156,7 +160,7 @@ def check_cn(target_folder, file_name_check):
     return target_folder
 
 
-def put_in_folder(info_dict, file_paths, cookies):
+def put_in_folder(info_dict, file_paths, cookies,driver):
     target_folder = f'【{info_dict["actor"]}】{info_dict["av_code"]}'
     target_folder = check_cn(target_folder, file_paths[0])
 
@@ -168,7 +172,7 @@ def put_in_folder(info_dict, file_paths, cookies):
     nfo_name = target_folder + ".xml"
     nfo_path = target_path / nfo_name
     create_xml_minidom(info_dict, nfo_path)
-    download_image_with_cookies(info_dict["cover_url"], cover_path, cookies)
+    download_image_with_cookies(info_dict["cover_url"], cover_path, cookies,driver)
     move_files(file_paths, target_path)
 
 

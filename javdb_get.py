@@ -59,7 +59,7 @@ def jav(driver, av_dict, cookies, site):
             print(f"\033[36m{key}\033[0m: {value}")
 
         # 保存
-        put_in_folder(info_dict, folder_name, cookies)
+        put_in_folder(info_dict, folder_name, cookies,driver)
         print("-" * 10)
         time.sleep(random.uniform(5, 7))
 
