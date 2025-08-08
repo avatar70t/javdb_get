@@ -36,23 +36,23 @@ def filelist_to_dict(filelist):
     return av_dict
 
 
-def javdb(driver, av_dict,cookies):
+def javdb(driver, av_dict, cookies):
     for video_code in av_dict.keys():
         url = get_url_javdb(driver, video_code)
         if url:
             url += "?locale=zh"
-            info_dict= get_info_javdb(driver, url)
+            info_dict = get_info_javdb(driver, url)
             put_in_folder(info_dict, av_dict[video_code], cookies)
         sleep_time = random.uniform(5, 7)
         time.sleep(sleep_time)
 
 
-def javbus(driver, av_dict,cookies):
+def javbus(driver, av_dict, cookies):
     for video_code in av_dict.keys():
         url = get_url_javbus(driver, video_code)
 
         if url:
-            info_dict= get_info_javbus(driver, url)
+            info_dict = get_info_javbus(driver, url)
             put_in_folder(info_dict, av_dict[video_code], cookies)
         sleep_time = random.uniform(5, 7)
         time.sleep(sleep_time)
@@ -68,16 +68,16 @@ def test():
 
 if __name__ == "__main__":
     chrome_cmd = [
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-    "--remote-debugging-port=9222",
-    "--user-data-dir=/tmp/selenium-chrome-profile"
-]
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "--remote-debugging-port=9222",
+        "--user-data-dir=/tmp/selenium-chrome-profile",
+    ]
 
     subprocess.Popen(chrome_cmd)
 
     print("等待用户登录...")
     input("登录完成后按回车继续...")
-    
+
     opts = Options()
     opts.debugger_address = DEBUGGER_ADDRESS
     driver = webdriver.Chrome(options=opts)
@@ -85,6 +85,6 @@ if __name__ == "__main__":
     cookies = {c["name"]: c["value"] for c in selenium_cookies}
     filelist = get_filepath_function()
     av_dict = filelist_to_dict(filelist)
-    # javbus(driver, av_dict,cookies)
-    javdb(driver, av_dict,cookies)
+    javbus(driver, av_dict, cookies)
+    # javdb(driver, av_dict,cookies)
     # test()

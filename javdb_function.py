@@ -73,7 +73,7 @@ def create_xml_minidom(info_dict, nfo_path):
     # 添加根节点到文档对象
     doc.appendChild(root)
 
-    # 创建第一个叶子节点
+    # 创建第一个子节点
     video_code = doc.createElement("video_code")
     video_code.appendChild(doc.createTextNode(info_dict["av_code"]))
     root.appendChild(video_code)
@@ -129,10 +129,42 @@ def move_files(file_list: list[Path], target_dir: Path):
             print(f"❌ 移动失败: {file_path.name}，原因: {e}")
 
 
+def check_cn(file_name_check):
+    # 初始化标志变量
+    cn_mark = 0
+    unc_mark = 0
+
+    # 获取文件名的主干部分并转为大写
+    stem_upper = file_name_check.stem.upper()
+
+    # 定义可能的标记关键词
+    cn_suffixes = {"C", "CH"}  # 文件名末尾的 CN 标志
+    cn_keywords = {"-C", "-C_", "-UC"}  # 文件名中包含的 CN 关键词
+    unc_keywords = {"-U", "UNCENSORED"}  # 未剪辑标志
+
+    # 检查是否是 CN 标志
+    if any(stem_upper.endswith(suffix) for suffix in cn_suffixes):
+        cn_mark = 1
+    if any(keyword in stem_upper for keyword in cn_keywords):
+        cn_mark = 1
+
+    # 检查是否是未剪辑标志
+    if any(keyword in stem_upper for keyword in unc_keywords):
+        unc_mark = 1
+
+    return cn_mark, unc_mark
+
+
 def put_in_folder(info_dict, file_paths, cookies):
-    print(info_dict)
-    print(file_paths)
     target_folder = f'【{info_dict["actor"]}】{info_dict["av_code"]}'
+    cn_mark, unc_mark = check_cn(file_paths[0])
+    if cn_mark or unc_mark:
+        target_folder = target_folder + "-"
+        if unc_mark:
+            target_folder = target_folder + "U"
+
+        if cn_mark:
+            target_folder = target_folder + "C"
     target_path = file_paths[0].parent / target_folder
     target_path.mkdir(parents=True, exist_ok=True)
     cover_name = target_folder + ".jpg"
@@ -185,7 +217,6 @@ def get_info_javdb(driver, url):
             "actor": "",
             "video_cover": "",
         }
-    
 
     def safe_get_text(selector):
         try:
@@ -275,7 +306,6 @@ def get_info_javbus(driver, url):
             "actor": "",
             "video_cover": "",
         }
-    
 
     def safe_get_text(selector):
         try:
@@ -313,6 +343,7 @@ def get_info_javbus(driver, url):
         if item.startswith("識別碼"):
             av_code = item.split(":")[-1].strip()
     actors = get_item_after("演員:", items)
+
     return {
         "title": title,
         "av_code": av_code,
