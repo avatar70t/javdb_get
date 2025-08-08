@@ -7,7 +7,6 @@ URL 列表文件：/Users/jianwang/Dropbox/Code/html_get/get_from_javlibrary/new
 # /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/selenium-chrome-profile
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
 from javdb_function import get_filepath_function
 from javdb_function import get_video_code
 from javdb_function import get_url_javdb
@@ -16,11 +15,10 @@ from javdb_function import get_info_javdb
 from javdb_function import get_info_javbus
 from javdb_function import put_in_folder
 from collections import defaultdict
-import subprocess
 import pathlib
 import time
 import random
-import sys
+import subprocess
 
 # ========== 可调参数 ==========
 DEBUGGER_ADDRESS = "localhost:9222"
@@ -38,35 +36,23 @@ def filelist_to_dict(filelist):
     return av_dict
 
 
-def javdb():
-    opts = Options()
-    opts.debugger_address = DEBUGGER_ADDRESS
-    driver = webdriver.Chrome(options=opts)
-    filelist = get_filepath_function()
-
-    av_dict = filelist_to_dict(filelist)
+def javdb(driver, av_dict,cookies):
     for video_code in av_dict.keys():
         url = get_url_javdb(driver, video_code)
         if url:
             url += "?locale=zh"
-            info_dict, cookies = get_info_javdb(driver, url)
+            info_dict= get_info_javdb(driver, url)
             put_in_folder(info_dict, av_dict[video_code], cookies)
         sleep_time = random.uniform(5, 7)
         time.sleep(sleep_time)
 
 
-def javbus():
-    opts = Options()
-    opts.debugger_address = DEBUGGER_ADDRESS
-    driver = webdriver.Chrome(options=opts)
-    filelist = get_filepath_function()
-
-    av_dict = filelist_to_dict(filelist)
+def javbus(driver, av_dict,cookies):
     for video_code in av_dict.keys():
         url = get_url_javbus(driver, video_code)
 
         if url:
-            info_dict, cookies = get_info_javbus(driver, url)
+            info_dict= get_info_javbus(driver, url)
             put_in_folder(info_dict, av_dict[video_code], cookies)
         sleep_time = random.uniform(5, 7)
         time.sleep(sleep_time)
@@ -81,6 +67,24 @@ def test():
 
 
 if __name__ == "__main__":
-    # javbus()
-    javdb()
+    chrome_cmd = [
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "--remote-debugging-port=9222",
+    "--user-data-dir=/tmp/selenium-chrome-profile"
+]
+
+    subprocess.Popen(chrome_cmd)
+
+    print("等待用户登录...")
+    input("登录完成后按回车继续...")
+    
+    opts = Options()
+    opts.debugger_address = DEBUGGER_ADDRESS
+    driver = webdriver.Chrome(options=opts)
+    selenium_cookies = driver.get_cookies()
+    cookies = {c["name"]: c["value"] for c in selenium_cookies}
+    filelist = get_filepath_function()
+    av_dict = filelist_to_dict(filelist)
+    # javbus(driver, av_dict,cookies)
+    javdb(driver, av_dict,cookies)
     # test()

@@ -185,8 +185,7 @@ def get_info_javdb(driver, url):
             "actor": "",
             "video_cover": "",
         }
-    selenium_cookies = driver.get_cookies()
-    cookies = {c["name"]: c["value"] for c in selenium_cookies}
+    
 
     def safe_get_text(selector):
         try:
@@ -208,7 +207,6 @@ def get_info_javdb(driver, url):
             return ""
 
     title = safe_get_text("strong.current-title")
-    title_code = safe_get_text("h2 > strong:nth-child(1)")
     cover_url = safe_get_attr("div.column-video-cover img", "src")
 
     container = safe_get_text(".panel.movie-panel-info")
@@ -225,7 +223,7 @@ def get_info_javdb(driver, url):
         "actor": female_actor_only(actors),
         "cover_url": cover_url,
         "url": url,
-    }, cookies
+    }
 
 
 # ----------javbus----------
@@ -277,8 +275,7 @@ def get_info_javbus(driver, url):
             "actor": "",
             "video_cover": "",
         }
-    selenium_cookies = driver.get_cookies()
-    cookies = {c["name"]: c["value"] for c in selenium_cookies}
+    
 
     def safe_get_text(selector):
         try:
@@ -323,4 +320,4 @@ def get_info_javbus(driver, url):
         "actor": actors,
         "cover_url": cover_url,
         "url": url,
-    }, cookies
+    }
