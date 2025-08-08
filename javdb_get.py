@@ -10,14 +10,17 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from javdb_function import get_filepath_function
 from javdb_function import get_video_code
-from javdb_function import get_from_url
-from javdb_function import get_info
+from javdb_function import get_url_javdb
+from javdb_function import get_url_javbus
+from javdb_function import get_info_javdb
+from javdb_function import get_info_javbus
 from javdb_function import put_in_folder
 from collections import defaultdict
 import subprocess
 import pathlib
 import time
 import random
+import sys
 
 # ========== 可调参数 ==========
 DEBUGGER_ADDRESS = "localhost:9222"
@@ -35,7 +38,7 @@ def filelist_to_dict(filelist):
     return av_dict
 
 
-def main():
+def javdb():
     opts = Options()
     opts.debugger_address = DEBUGGER_ADDRESS
     driver = webdriver.Chrome(options=opts)
@@ -43,14 +46,41 @@ def main():
 
     av_dict = filelist_to_dict(filelist)
     for video_code in av_dict.keys():
-        url, av_code_in_search_page = get_from_url(driver, video_code)
-        if av_code_in_search_page == video_code:
+        url = get_url_javdb(driver, video_code)
+        if url:
             url += "?locale=zh"
-            info_dict = get_info(driver, url)
-            put_in_folder(info_dict, av_dict[video_code])
+            info_dict, cookies = get_info_javdb(driver, url)
+            put_in_folder(info_dict, av_dict[video_code], cookies)
         sleep_time = random.uniform(5, 7)
         time.sleep(sleep_time)
 
 
+def javbus():
+    opts = Options()
+    opts.debugger_address = DEBUGGER_ADDRESS
+    driver = webdriver.Chrome(options=opts)
+    filelist = get_filepath_function()
+
+    av_dict = filelist_to_dict(filelist)
+    for video_code in av_dict.keys():
+        url = get_url_javbus(driver, video_code)
+
+        if url:
+            info_dict, cookies = get_info_javbus(driver, url)
+            put_in_folder(info_dict, av_dict[video_code], cookies)
+        sleep_time = random.uniform(5, 7)
+        time.sleep(sleep_time)
+
+
+def test():
+    opts = Options()
+    opts.debugger_address = DEBUGGER_ADDRESS
+    driver = webdriver.Chrome(options=opts)
+    url = get_url_javdb(driver, "JUX-816")
+    print(url)
+
+
 if __name__ == "__main__":
-    main()
+    # javbus()
+    javdb()
+    # test()
