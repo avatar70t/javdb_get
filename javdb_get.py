@@ -36,26 +36,32 @@ def filelist_to_dict(filelist):
     return av_dict
 
 
-def javdb(driver, av_dict, cookies):
-    for video_code in av_dict.keys():
-        url = get_url_javdb(driver, video_code)
-        if url:
-            url += "?locale=zh"
-            info_dict = get_info_javdb(driver, url)
-            put_in_folder(info_dict, av_dict[video_code], cookies)
-        sleep_time = random.uniform(5, 7)
-        time.sleep(sleep_time)
+def jav(driver, av_dict, cookies, site):
+    # 把不同站点的函数映射好
+    url_funcs = {"javdb": get_url_javdb, "javbus": get_url_javbus}
+    info_funcs = {"javdb": get_info_javdb, "javbus": get_info_javbus}
 
+    for idx, (video_code, folder_name) in enumerate(av_dict.items(), start=1):
+        if site not in url_funcs:
+            raise ValueError(f"未知站点: {site}")
 
-def javbus(driver, av_dict, cookies):
-    for video_code in av_dict.keys():
-        url = get_url_javbus(driver, video_code)
+        # 获取 URL
+        url = url_funcs[site](driver, video_code)
 
-        if url:
-            info_dict = get_info_javbus(driver, url)
-            put_in_folder(info_dict, av_dict[video_code], cookies)
-        sleep_time = random.uniform(5, 7)
-        time.sleep(sleep_time)
+        if not url:
+            print(f"[{idx}/{len(av_dict)}] {video_code} 未找到URL，跳过")
+            continue
+
+        # 获取信息
+        info_dict = info_funcs[site](driver, url)
+        print(f"[{idx}/{len(av_dict)}]{video_code}")
+        for key, value in info_dict.items():
+            print(f"\033[36m{key}\033[0m: {value}")
+
+        # 保存
+        put_in_folder(info_dict, folder_name, cookies)
+        print("-" * 10)
+        time.sleep(random.uniform(5, 7))
 
 
 def test():
@@ -85,6 +91,5 @@ if __name__ == "__main__":
     cookies = {c["name"]: c["value"] for c in selenium_cookies}
     filelist = get_filepath_function()
     av_dict = filelist_to_dict(filelist)
-    javbus(driver, av_dict, cookies)
-    # javdb(driver, av_dict,cookies)
-    # test()
+    jav(driver, av_dict, cookies, "javbus")
+    # jav(driver, av_dict, cookies, "javdb")

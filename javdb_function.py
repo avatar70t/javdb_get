@@ -63,40 +63,35 @@ def female_actor_only(actors):
 
 
 def create_xml_minidom(info_dict, nfo_path):
-    # 新建 xml 文档对象
-    doc = minidom.Document()
+    try:
+        # 新建 xml 文档对象
+        doc = minidom.Document()
 
-    # 创建根节点
-    root = doc.createElement("root")
-    # 设置根节点属性
-    root.setAttribute("javdb", info_dict["url"])
-    # 添加根节点到文档对象
-    doc.appendChild(root)
+        # 创建根节点
+        root = doc.createElement("root")
+        root.setAttribute("javdb", info_dict.get("url", ""))  # 用 get 避免 KeyError
+        doc.appendChild(root)
 
-    # 创建第一个子节点
-    video_code = doc.createElement("video_code")
-    video_code.appendChild(doc.createTextNode(info_dict["av_code"]))
-    root.appendChild(video_code)
+        # 子节点封装函数，减少重复
+        def add_node(name, text):
+            elem = doc.createElement(name)
+            elem.appendChild(doc.createTextNode(text))
+            root.appendChild(elem)
 
-    title = doc.createElement("title")
-    title.appendChild(doc.createTextNode(info_dict["title"]))
-    root.appendChild(title)
+        add_node("video_code", info_dict.get("av_code", ""))
+        add_node("title", info_dict.get("title", ""))
+        add_node("release", info_dict.get("date", ""))
+        add_node("d_date", time.strftime("%Y-%m-%d"))
+        add_node("name", info_dict.get("actor", ""))
 
-    release = doc.createElement("release")
-    release.appendChild(doc.createTextNode(info_dict["date"]))
-    root.appendChild(release)
+        # 保存
+        with open(nfo_path, "wb") as f:
+            f.write(doc.toprettyxml(encoding="utf-8"))
 
-    d_date = doc.createElement("d_date")
-    d_date.appendChild(doc.createTextNode(time.strftime("%Y-%m-%d")))
-    root.appendChild(d_date)
+        print(f"✅ {nfo_path.name}")
 
-    name = doc.createElement("name")
-    name.appendChild(doc.createTextNode(info_dict["actor"]))
-    root.appendChild(name)
-
-    # 保存 xml 文档对象
-    with open(nfo_path, "wb") as f:
-        f.write(doc.toprettyxml(encoding="utf-8"))
+    except Exception as e:
+        print(f"❌ 生成 XML 失败: {nfo_path.name} - {e}")
 
 
 def download_image_with_cookies(img_url, save_path, cookies):
@@ -111,7 +106,7 @@ def download_image_with_cookies(img_url, save_path, cookies):
 
         # 保存
         Path(save_path).write_bytes(response.content)
-        print(f"✅ 图片已保存到: {save_path}")
+        print(f"✅ {save_path.name}")
 
     except Exception as e:
         print(f"❌ 下载图片失败: {e}")
@@ -124,12 +119,12 @@ def move_files(file_list: list[Path], target_dir: Path):
         try:
             target_path = target_dir / file_path.name
             shutil.move(str(file_path), str(target_path))
-            print(f"✅ 移动成功: {file_path.name} → {target_path}")
+            print(f"✅ {target_path.name}")
         except Exception as e:
-            print(f"❌ 移动失败: {file_path.name}，原因: {e}")
+            print(f"❌ {file_path.name}，原因: {e}")
 
 
-def check_cn(file_name_check):
+def check_cn(target_folder, file_name_check):
     # 初始化标志变量
     cn_mark = 0
     unc_mark = 0
@@ -151,20 +146,20 @@ def check_cn(file_name_check):
     # 检查是否是未剪辑标志
     if any(keyword in stem_upper for keyword in unc_keywords):
         unc_mark = 1
-
-    return cn_mark, unc_mark
-
-
-def put_in_folder(info_dict, file_paths, cookies):
-    target_folder = f'【{info_dict["actor"]}】{info_dict["av_code"]}'
-    cn_mark, unc_mark = check_cn(file_paths[0])
     if cn_mark or unc_mark:
         target_folder = target_folder + "-"
         if unc_mark:
             target_folder = target_folder + "U"
-
         if cn_mark:
             target_folder = target_folder + "C"
+
+    return target_folder
+
+
+def put_in_folder(info_dict, file_paths, cookies):
+    target_folder = f'【{info_dict["actor"]}】{info_dict["av_code"]}'
+    target_folder = check_cn(target_folder, file_paths[0])
+
     target_path = file_paths[0].parent / target_folder
     target_path.mkdir(parents=True, exist_ok=True)
     cover_name = target_folder + ".jpg"
@@ -194,7 +189,7 @@ def get_url_javdb(driver, video_code):
         if av_code == video_code:
             href = first_link.get_attribute("href")
 
-            return href
+            return href + "?locale=zh"
     except Exception as e:
         print(f"❌ 获取电影链接失败: {url}")
         print(f"错误类型: {type(e).__name__}, 信息: {e}")
@@ -343,6 +338,8 @@ def get_info_javbus(driver, url):
         if item.startswith("識別碼"):
             av_code = item.split(":")[-1].strip()
     actors = get_item_after("演員:", items)
+    if actors == "暫無出演者資訊":
+        actors = "有码演员"
 
     return {
         "title": title,
