@@ -94,15 +94,12 @@ def create_xml_minidom(info_dict, nfo_path):
         print(f"❌ 生成 XML 失败: {nfo_path.name} - {e}")
 
 
-def download_image_with_cookies(img_url, save_path, cookies,driver):
-    
-    headers = {
-            "User-Agent": driver.execute_script("return navigator.userAgent;"),
-            "Referer": driver.current_url
-        }
-    print(headers)
-    input()
+def download_image_with_cookies(img_url, save_path, cookies, driver):
 
+    headers = {
+        "User-Agent": driver.execute_script("return navigator.userAgent;"),
+        "Referer": driver.current_url,
+    }
     try:
         # 下载图片
         response = requests.get(img_url, cookies=cookies, headers=headers, stream=True)
@@ -160,7 +157,7 @@ def check_cn(target_folder, file_name_check):
     return target_folder
 
 
-def put_in_folder(info_dict, file_paths, cookies,driver):
+def put_in_folder(info_dict, file_paths, cookies, driver):
     target_folder = f'【{info_dict["actor"]}】{info_dict["av_code"]}'
     target_folder = check_cn(target_folder, file_paths[0])
 
@@ -172,7 +169,7 @@ def put_in_folder(info_dict, file_paths, cookies,driver):
     nfo_name = target_folder + ".xml"
     nfo_path = target_path / nfo_name
     create_xml_minidom(info_dict, nfo_path)
-    download_image_with_cookies(info_dict["cover_url"], cover_path, cookies,driver)
+    download_image_with_cookies(info_dict["cover_url"], cover_path, cookies, driver)
     move_files(file_paths, target_path)
 
 

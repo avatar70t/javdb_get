@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-批量抓取 czbooks 正文 —— 连接现有 Chrome (9222)
-URL 列表文件：/Users/jianwang/Dropbox/Code/html_get/get_from_javlibrary/new.txt
-"""
 # 启动 Chrome 示例：
 # /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/selenium-chrome-profile
 from selenium import webdriver
@@ -54,12 +50,12 @@ def jav(driver, av_dict, cookies, site):
 
         # 获取信息
         info_dict = info_funcs[site](driver, url)
-        print(f"[{idx}/{len(av_dict)}]{video_code}")
+        print(f"[{idx}/{len(av_dict)}]\033[33m{video_code}\033[0m")
         for key, value in info_dict.items():
-            print(f"\033[36m{key}\033[0m: {value}")
+            print(f"\033[36m{key:<{10}}\033[0m : {value}")
 
         # 保存
-        put_in_folder(info_dict, folder_name, cookies,driver)
+        put_in_folder(info_dict, folder_name, cookies, driver)
         print("-" * 10)
         time.sleep(random.uniform(5, 7))
 
