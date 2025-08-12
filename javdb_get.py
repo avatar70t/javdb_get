@@ -32,10 +32,27 @@ def filelist_to_dict(filelist):
     return av_dict
 
 
-def jav(driver, av_dict, cookies, site):
+def jav(av_dict, site):
     # 把不同站点的函数映射好
+    site_map = {"javdb": "https://javdb458.com/", "javbus": "https://javbus.com/"}
     url_funcs = {"javdb": get_url_javdb, "javbus": get_url_javbus}
     info_funcs = {"javdb": get_info_javdb, "javbus": get_info_javbus}
+    chrome_cmd = [
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "--remote-debugging-port=9222",
+        "--user-data-dir=/tmp/selenium-chrome-profile",
+        "--disable-default-browser-promo",
+        site_map.get(site),
+    ]
+    subprocess.Popen(chrome_cmd)
+
+    print("等待用户登录...")
+    input("登录完成后按回车继续...")
+    opts = Options()
+    opts.debugger_address = DEBUGGER_ADDRESS
+    driver = webdriver.Chrome(options=opts)
+    selenium_cookies = driver.get_cookies()
+    cookies = {c["name"]: c["value"] for c in selenium_cookies}
 
     for idx, (video_code, folder_name) in enumerate(av_dict.items(), start=1):
         if site not in url_funcs:
@@ -69,23 +86,7 @@ def test():
 
 
 if __name__ == "__main__":
-    chrome_cmd = [
-        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        "--remote-debugging-port=9222",
-        "--user-data-dir=/tmp/selenium-chrome-profile",
-    ]
-
-    subprocess.Popen(chrome_cmd)
-
-    print("等待用户登录...")
-    input("登录完成后按回车继续...")
-
-    opts = Options()
-    opts.debugger_address = DEBUGGER_ADDRESS
-    driver = webdriver.Chrome(options=opts)
-    selenium_cookies = driver.get_cookies()
-    cookies = {c["name"]: c["value"] for c in selenium_cookies}
     filelist = get_filepath_function()
     av_dict = filelist_to_dict(filelist)
-    jav(driver, av_dict, cookies, "javbus")
-    # jav(driver, av_dict, cookies, "javdb")
+    # jav(driver, av_dict, cookies, "javbus")
+    jav(av_dict, "javbus")
