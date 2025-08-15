@@ -74,7 +74,8 @@ def jav(av_dict, site):
         # 保存
         put_in_folder(info_dict, folder_name, cookies, driver)
         print("-" * 10)
-        time.sleep(random.uniform(5, 7))
+        if idx < len(av_dict):
+            time.sleep(random.uniform(5, 7))
 
 
 def test():
@@ -89,4 +90,4 @@ if __name__ == "__main__":
     filelist = get_filepath_function()
     av_dict = filelist_to_dict(filelist)
     # jav(driver, av_dict, cookies, "javbus")
-    jav(av_dict, "javbus")
+    jav(av_dict, "javdb")
